@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KASHMIRI XI | Professional Cricket Scoreboard</title>
+  <meta name="description" content="KASHMIRI XI - Professional, responsive, and intuitive Cricket Scoreboard Web Application with offline PWA support, live scoring, and side-by-side match analytics.">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- APP HEADER -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="logo-area" id="logoClick">
+        <div class="logo-badge">🏏</div>
+        <div class="logo-text">
+          <h1>KASHMIRI XI</h1>
+          <span>Live Broadcast Engine</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Online/Offline Status Pill -->
+        <div class="offline-pill" id="offlineStatus">
+          <span class="status-dot"></span>
+          <span id="offlineStatusText">Offline Ready</span>
+        </div>
+
+        <!-- Sound FX Toggle -->
+        <button class="btn-icon active" id="btnSoundToggle" title="Toggle Sound FX" aria-label="Toggle Sound">
+          🔊
+        </button>
+
+        <!-- Match History -->
+        <button class="btn-icon" id="btnHistory" title="Saved Match History" aria-label="Match History">
+          📋
+        </button>
+
+        <!-- Export JSON -->
+        <button class="btn-icon" id="btnExport" title="Export Match JSON" aria-label="Export Match">
+          💾
+        </button>
+
+        <!-- New Match / Reset -->
+        <button class="btn-icon" id="btnNewMatch" title="Setup New Match" aria-label="New Match">
+          🔄
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="container">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: MATCH SETUP SCREEN                 -->
+    <!-- ========================================== -->
+    <div id="setupView" class="setup-screen fade-in">
+      <div class="setup-card">
+        <div class="card-title-bar">
+          <h2 class="modal-title">🏟️ Match Setup & Configuration</h2>
+          <span class="innings-indicator">Step 1 of 2</span>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="form-group">
+          <label>Quick Match Presets</label>
+          <div class="quick-presets-bar">
+            <button type="button" class="preset-chip" id="presetIndAus">🇮🇳 IND vs AUS (T20)</button>
+            <button type="button" class="preset-chip" id="presetEngSa">🏴󠁧󠁢󠁥󠁮󠁧󠁿 ENG vs SA (ODI)</button>
+            <button type="button" class="preset-chip" id="presetClub10">⚡ Club Blitz (10 Overs)</button>
+            <button type="button" class="preset-chip" id="presetSameNames">👥 Same Names Demo (Rahul vs John)</button>
+          </div>
+        </div>
+
+        <form id="matchSetupForm">
+          <!-- Format Selector -->
+          <div class="form-group">
+            <label>Match Format</label>
+            <div class="pill-selector" id="formatSelector">
+              <div class="pill-opt active" data-format="t20">T20 (20 Ov)</div>
+              <div class="pill-opt" data-format="odi">ODI (50 Ov)</div>
+              <div class="pill-opt" data-format="test">Test</div>
+              <div class="pill-opt" data-format="custom">Custom</div>
+            </div>
+          </div>
+
+          <!-- Custom Overs Row (hidden unless custom selected) -->
+          <div class="form-grid-2" id="customOversGroup" style="display: none;">
+            <div class="form-group">
+              <label for="inputCustomOvers">Total Overs (1–50)</label>
+              <input type="number" id="inputCustomOvers" class="form-control" min="1" max="50" value="10">
+            </div>
+            <div class="form-group">
+              <label for="inputBowlerLimit">Max Overs per Bowler</label>
+              <input type="number" id="inputBowlerLimit" class="form-control" min="1" max="20" value="2">
+            </div>
+          </div>
+
+          <!-- Teams Config -->
+          <div class="form-grid-2">
+            <!-- Team A -->
+            <div class="form-group">
+              <label for="teamAName">Team A Name</label>
+              <input type="text" id="teamAName" class="form-control" value="India" required>
+              <div style="margin-top: 8px;">
+                <label for="teamAShort">Short Code</label>
+                <input type="text" id="teamAShort" class="form-control" value="IND" maxlength="4" style="text-transform: uppercase;">
+              </div>
+              <div style="margin-top: 8px;">
+                <label for="teamAPlayers">Squad (11 Players, one per line)</label>
+                <textarea id="teamAPlayers" class="form-control" rows="6" style="resize: vertical; font-family: var(--font-sans); font-size: 0.85rem;"></textarea>
+              </div>
+            </div>
+
+            <!-- Team B -->
+            <div class="form-group">
+              <label for="teamBName">Team B Name</label>
+              <input type="text" id="teamBName" class="form-control" value="Australia" required>
+              <div style="margin-top: 8px;">
+                <label for="teamBShort">Short Code</label>
+                <input type="text" id="teamBShort" class="form-control" value="AUS" maxlength="4" style="text-transform: uppercase;">
+              </div>
+              <div style="margin-top: 8px;">
+                <label for="teamBPlayers">Squad (11 Players, one per line)</label>
+                <textarea id="teamBPlayers" class="form-control" rows="6" style="resize: vertical; font-family: var(--font-sans); font-size: 0.85rem;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Duplicate Player Names Option Card -->
+          <div class="form-group" style="background: rgba(0, 0, 0, 0.28); border: 1px solid var(--border-glass-light); border-radius: var(--radius-md); padding: 14px 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin-bottom: 0; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.85rem;">
+                <span>👥 Same Player Name Support</span>
+              </label>
+              <span class="innings-indicator" style="color: var(--accent-pitch); font-size: 0.72rem;">Enabled</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 10px; line-height: 1.4;">
+              Players in the same team can share the exact same name (e.g., multiple "Rahul", "Ali", or "John"). Choose how you'd like identical names displayed on the scoreboard:
+            </p>
+            <div class="pill-selector" id="duplicateNameSelector">
+              <div class="pill-opt active" data-style="squadOrder">Auto-Number (e.g. Rahul #1, Rahul #7)</div>
+              <div class="pill-opt" data-style="alpha">Letter (e.g. Rahul A, Rahul B)</div>
+              <div class="pill-opt" data-style="exact">Keep Exact Name (Rahul, Rahul)</div>
+            </div>
+          </div>
+
+          <!-- Toss Configuration -->
+          <div class="form-group">
+            <label>Toss Winner & Decision</label>
+            <div class="form-grid-2">
+              <div>
+                <select id="tossWinnerSelect" class="form-control">
+                  <option value="teamA">Team A</option>
+                  <option value="teamB">Team B</option>
+                </select>
+              </div>
+              <div class="pill-selector" id="tossDecisionSelector">
+                <div class="pill-opt active" data-decision="bat">Elected to Bat</div>
+                <div class="pill-opt" data-decision="bowl">Elected to Bowl</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnStartMatch">
+            Proceed to Select Openers & Bowl 🚀
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: LIVE SCORING DASHBOARD             -->
+    <!-- ========================================== -->
+    <div id="liveScoringView" style="display: none;" class="fade-in">
+      
+      <!-- HERO SCORECARD BANNER -->
+      <section class="score-banner-card" aria-label="Match Scorecard Banner">
+        <div class="banner-top-meta">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span class="match-format-badge" id="displayMatchFormat">T20</span>
+            <span class="innings-indicator" id="displayInningsBadge">1st Innings</span>
+            <span class="innings-indicator" id="displayFirstInningsSummary" style="display: none; background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); border: 1px solid rgba(245, 158, 11, 0.35);"></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span class="toss-info-text" id="displayTossText">IND won toss & elected to bat</span>
+            <button type="button" id="btnBannerNextInning" class="flow-pill-btn btn-pill-next" title="Next Inning (works after completing chosen overs)">
+              ⏩ Next Inning
+            </button>
+            <button type="button" id="btnBannerMatchEnd" class="flow-pill-btn btn-pill-end" title="Match End (works after both innings end)">
+              🏆 Match End
+            </button>
+            <button type="button" id="btnDeclare1stInnings" class="swap-strike-btn" style="color: var(--accent-gold); border-color: rgba(245, 158, 11, 0.4);" title="End 1st Innings / Declare & Shift to Next Team">
+              🏁 Declare 1st Innings
+            </button>
+          </div>
+        </div>
+
+        <div class="banner-main-grid">
+          <div>
+            <div class="batting-team-title">
+              <span class="team-flag-pill" id="displayTeamFlag"></span>
+              <span class="team-name-big" id="displayBattingTeam">India</span>
+            </div>
+            
+            <div class="score-display-huge">
+              <div class="primary-score">
+                <span id="displayScoreRuns">0</span><span class="wickets-slash">/</span><span id="displayScoreWickets">0</span>
+              </div>
+              <div class="overs-conceded">
+                (<span id="displayOvers">0.0</span> <span class="max-ov" id="displayMaxOvers">/ 20 ov</span>)
+              </div>
+            </div>
+          </div>
+
+          <!-- Rate Metrics (CRR & RRR) -->
+          <div class="rate-metrics">
+            <div class="rate-box">
+              <span class="label">CRR</span>
+              <span class="val" id="displayCRR">0.00</span>
+            </div>
+            <div class="rate-box rrr-box" id="rrrContainer" style="display: none;">
+              <span class="label">RRR</span>
+              <span class="val" id="displayRRR">0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target / Chase Strip (2nd Innings) -->
+        <div class="target-banner" id="targetBanner" style="display: none;">
+          <div class="target-info-row">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="target-pill-badge">🎯 TARGET: <strong class="target-highlight" id="displayTargetRuns" style="font-size: 1.15rem; margin-left: 2px;">0</strong> RUNS</span>
+              <span id="displayTargetFirstInningsText" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+            </div>
+            <span id="displayChaseMath" style="font-weight: 700; color: #fff; font-size: 0.95rem;">Need 0 runs from 0 balls</span>
+          </div>
+          <div class="target-progress-bar">
+            <div class="target-progress-fill" id="displayTargetProgress" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Free Hit Banner -->
+        <div class="free-hit-strip" id="freeHitBanner" style="display: none;">
+          <span>⚡ FREE HIT DELIVERY! Batsman cannot be dismissed except run out!</span>
+        </div>
+      </section>
+
+      <!-- RECENT DELIVERIES (THIS OVER BADGES) -->
+      <section class="recent-deliveries-card" aria-label="Recent Deliveries">
+        <div class="recent-label">
+          <span>Current Over:</span>
+        </div>
+        <div class="recent-balls-tray" id="recentBallsTray">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Over just starting...</span>
+        </div>
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">
+          Over Total: <span id="displayOverTotalRuns" style="color: var(--accent-pitch); font-family: var(--font-mono);">0</span>
+        </div>
+      </section>
+
+      <!-- ON-FIELD PLAYERS: BATTERS & BOWLER -->
+      <section class="onfield-grid" aria-label="Active Batters and Bowler">
+        <!-- Batting Box -->
+        <div class="section-card">
+          <div class="card-title-bar">
+            <span class="card-title">🏏 Batters in Middle</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="partnership-pill" id="displayPartnership">P'ship: 0 (0)</span>
+              <button class="swap-strike-btn" id="btnManualSwapStrike" title="Swap Striker & Non-Striker">
+                ⇄ Swap Strike
+              </button>
+            </div>
+          </div>
+
+          <table class="data-table" id="battersTable">
+            <thead>
+              <tr>
+                <th>Batter</th>
+                <th class="num">R</th>
+                <th class="num">B</th>
+                <th class="num">4s</th>
+                <th class="num">6s</th>
+                <th class="num">SR</th>
+              </tr>
+            </thead>
+            <tbody id="battersTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bowling Box -->
+        <div class="section-card">
+          <div class="card-title-bar">
+            <span class="card-title">🎯 Current Bowler</span>
+            <button class="change-bowler-btn" id="btnChangeBowlerMidOver" title="Change bowler before over ends">
+              Change Bowler
+            </button>
+          </div>
+
+          <div class="bowler-active-box" id="bowlerActiveBox">
+            <div class="bowler-header">
+              <span class="bowler-name" id="displayBowlerName">Select Bowler</span>
+              <span class="bowler-limit-badge" id="displayBowlerLimit">Max 4 ov</span>
+            </div>
+            <div class="bowler-stats-row">
+              <div class="bowler-stat-item">
+                <span class="stat-lbl">O</span>
+                <span class="stat-val" id="bowlerStatO">0.0</span>
+              </div>
+              <div class="bowler-stat-item">
+                <span class="stat-lbl">M</span>
+                <span class="stat-val" id="bowlerStatM">0</span>
+              </div>
+              <div class="bowler-stat-item">
+                <span class="stat-lbl">R</span>
+                <span class="stat-val" id="bowlerStatR">0</span>
+              </div>
+              <div class="bowler-stat-item">
+                <span class="stat-lbl">W</span>
+                <span class="stat-val" id="bowlerStatW">0</span>
+              </div>
+              <div class="bowler-stat-item">
+                <span class="stat-lbl">Econ</span>
+                <span class="stat-val" id="bowlerStatEcon">0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE SCORING CONSOLE PAD -->
+      <section class="scoring-console-card" aria-label="Scoring Controls Pad">
+        <div class="scoring-controls-grid">
+          
+          <!-- MATCH PROGRESSION CONTROLS (NEXT INNING & MATCH END) -->
+          <div class="match-flow-controls" aria-label="Match Flow Controls">
+            <button type="button" class="match-flow-btn btn-flow-next" id="btnNextInning" title="Proceed to Next Inning (Works after completing chosen overs)">
+              <div class="flow-btn-left">
+                <div class="flow-icon-bubble">⏩</div>
+                <div class="flow-texts">
+                  <div class="flow-btn-title">NEXT INNING</div>
+                  <div class="flow-btn-sub" id="nextInningSubText">Works after completing chosen overs</div>
+                </div>
+              </div>
+              <div class="flow-btn-badge" id="nextInningBadge">0/20 Ov</div>
+            </button>
+
+            <button type="button" class="match-flow-btn btn-flow-end" id="btnMatchEnd" title="End / Conclude Match (Works after both 1st & 2nd innings end)">
+              <div class="flow-btn-left">
+                <div class="flow-icon-bubble">🏆</div>
+                <div class="flow-texts">
+                  <div class="flow-btn-title">MATCH END</div>
+                  <div class="flow-btn-sub" id="matchEndSubText">Works after both innings end</div>
+                </div>
+              </div>
+              <div class="flow-btn-badge" id="matchEndBadge">Locked</div>
+            </button>
+          </div>
+
+          <!-- Live flow status notice -->
+          <div class="flow-alert-banner" id="matchFlowAlert" style="display: none;"></div>
+
+          <!-- Quick Runs Row -->
+          <div class="runs-pad">
+            <button type="button" class="score-btn" data-run="0">
+              <span>0</span>
+              <span class="sub-lbl">Dot</span>
+            </button>
+            <button type="button" class="score-btn" data-run="1">
+              <span>1</span>
+              <span class="sub-lbl">Single</span>
+            </button>
+            <button type="button" class="score-btn" data-run="2">
+              <span>2</span>
+              <span class="sub-lbl">Double</span>
+            </button>
+            <button type="button" class="score-btn" data-run="3">
+              <span>3</span>
+              <span class="sub-lbl">Three</span>
+            </button>
+            <button type="button" class="score-btn btn-four" data-run="4">
+              <span>4</span>
+              <span class="sub-lbl" style="color: #e0f2fe;">FOUR!</span>
+            </button>
+            <button type="button" class="score-btn btn-six" data-run="6">
+              <span>6</span>
+              <span class="sub-lbl" style="color: #fef3c7;">SIX!</span>
+            </button>
+          </div>
+
+          <!-- Quick Extras Row -->
+          <div class="extras-pad">
+            <button type="button" class="extra-btn" data-extra="wide">
+              <span>Wide</span>
+              <span class="ext-sub">+1 wd</span>
+            </button>
+            <button type="button" class="extra-btn" data-extra="noBall">
+              <span>No Ball</span>
+              <span class="ext-sub">+1 nb</span>
+            </button>
+            <button type="button" class="extra-btn" data-extra="bye">
+              <span>Bye</span>
+              <span class="ext-sub">+1 b</span>
+            </button>
+            <button type="button" class="extra-btn" data-extra="legBye">
+              <span>Leg Bye</span>
+              <span class="ext-sub">+1 lb</span>
+            </button>
+            <button type="button" class="extra-btn" data-extra="penalty">
+              <span>Penalty</span>
+              <span class="ext-sub">+5 pen</span>
+            </button>
+          </div>
+
+          <!-- Special Action Row (WICKET, CUSTOM COMBO, UNDO) -->
+          <div class="actions-row">
+            <button type="button" class="action-btn btn-wicket-action" id="btnWicketModal">
+              ☝️ WICKET (Out)
+            </button>
+            <button type="button" class="action-btn btn-custom-action" id="btnCustomCombo">
+              ⚙️ Combo / Adj
+            </button>
+            <button type="button" class="action-btn btn-undo-action" id="btnUndoBall" title="Undo previous delivery (Ctrl+Z)">
+              ↩️ Undo Ball
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SCORECARD & COMMENTARY TABS -->
+      <section class="section-card" aria-label="Detailed Scorecard and Commentary">
+        <div class="tabs-navigation">
+          <button class="tab-btn active" data-tab="tabScorecard">📊 Full Scorecard</button>
+          <button class="tab-btn" data-tab="tabCommentary">🎙️ Commentary & Overs</button>
+          <button class="tab-btn" data-tab="tabFallOfWickets">📉 Fall of Wickets & Extras</button>
+        </div>
+
+        <!-- TAB 1: FULL SCORECARD -->
+        <div class="tab-content active" id="tabScorecard">
+          <div id="fullScorecardContainer">
+            <!-- Dynamically populated with Batting & Bowling tables for active/past innings -->
+          </div>
+        </div>
+
+        <!-- TAB 2: COMMENTARY -->
+        <div class="tab-content" id="tabCommentary">
+          <div class="commentary-list" id="commentaryList">
+            <p style="color: var(--text-dim); text-align: center; padding: 20px;">No deliveries bowled yet.</p>
+          </div>
+        </div>
+
+        <!-- TAB 3: FALL OF WICKETS & EXTRAS -->
+        <div class="tab-content" id="tabFallOfWickets">
+          <div class="form-grid-2">
+            <div>
+              <h4 style="font-size: 0.9rem; color: var(--accent-pitch); margin-bottom: 10px;">Fall of Wickets</h4>
+              <div id="fowList" style="font-size: 0.88rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;">
+                <em>No wickets have fallen yet.</em>
+              </div>
+            </div>
+            <div>
+              <h4 style="font-size: 0.9rem; color: var(--accent-extra); margin-bottom: 10px;">Extras Breakdown</h4>
+              <div id="extrasBreakdown" style="font-size: 0.88rem; color: var(--text-muted);">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+
+  <!-- ========================================== -->
+  <!-- MODALS                                     -->
+  <!-- ========================================== -->
+
+  <!-- 1. OPENERS SELECTION MODAL -->
+  <div class="modal-backdrop" id="openersModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">🏏 Choose Openers</h3>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        Select the two opening batsmen and the bowler who will deliver the 1st over.
+      </p>
+
+      <form id="openersForm">
+        <div class="form-group">
+          <label for="selectStriker">Striker (Facing 1st Ball)</label>
+          <select id="selectStriker" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label for="selectNonStriker">Non-Striker (Runner)</label>
+          <select id="selectNonStriker" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label for="selectOpeningBowler">Opening Bowler</label>
+          <select id="selectOpeningBowler" class="form-control" required></select>
+        </div>
+
+        <button type="submit" class="btn-primary">Start Innings ⚡</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- INNINGS BREAK & TARGET CHASE MODAL (SHIFT DIRECTLY TO NEXT TEAM) -->
+  <div class="modal-backdrop" id="inningsBreakModal">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--accent-pitch); font-size: 1.35rem;">
+          🏁 1st Innings Ended — Shift to Next Team
+        </h3>
+      </div>
+      
+      <!-- 1st Innings Summary Box -->
+      <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px;">
+        <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">
+          1st Innings Final Score
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 1.25rem; font-weight: 800; color: #fff;" id="breakFirstTeamScore">India: 184/4</span>
+          <span style="color: var(--text-muted); font-size: 0.95rem; font-family: var(--font-mono);" id="breakFirstTeamOvers">(20.0 / 20 ov)</span>
+        </div>
+      </div>
+
+      <!-- TARGET TO CHASE PROMINENT HERO CARD -->
+      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(16, 185, 129, 0.16)); border: 2px solid var(--accent-gold); border-radius: var(--radius-lg); padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);">
+        <span style="display: block; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-gold); margin-bottom: 4px;">
+          🎯 TOTAL RUNS TO CHASE
+        </span>
+        <div style="font-size: 3.5rem; font-weight: 900; line-height: 1; color: #ffffff; text-shadow: 0 0 25px rgba(245, 158, 11, 0.7); margin: 6px 0;" id="breakTargetRuns">
+          185
+        </div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;" id="breakChaseDetails">
+          Australia needs 185 runs to win
+        </div>
+        <div style="font-size: 0.84rem; font-weight: 700; color: var(--accent-pitch); margin-top: 4px;" id="breakRRRText">
+          Required Run Rate: 9.25 RRR
+        </div>
+      </div>
+
+      <!-- Choose Openers for Next Team -->
+      <form id="inningsBreakForm">
+        <h4 style="font-size: 0.88rem; color: var(--accent-boundary); text-transform: uppercase; margin-bottom: 10px; font-weight: 800;">
+          Select Next Team Openers & Opening Bowler
+        </h4>
+
+        <div class="form-group">
+          <label for="breakStrikerSelect">Striker (Facing 1st Ball)</label>
+          <select id="breakStrikerSelect" class="form-control" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="breakNonStrikerSelect">Non-Striker (Runner)</label>
+          <select id="breakNonStrikerSelect" class="form-control" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="breakOpeningBowlerSelect">Opening Bowler</label>
+          <select id="breakOpeningBowlerSelect" class="form-control" required></select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--accent-gold), #d97706); color: #000; font-weight: 900; font-size: 1.05rem; box-shadow: 0 4px 20px var(--accent-gold-glow);">
+          🚀 Start 2nd Innings (Chase Target: <span id="btnBreakTargetVal">185</span>)
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. WICKET DISMISSAL MODAL -->
+  <div class="modal-backdrop" id="wicketModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--accent-wicket);">☝️ Dismissal Details</h3>
+        <button type="button" class="close-btn" id="btnCloseWicketModal">&times;</button>
+      </div>
+
+      <form id="wicketForm">
+        <div class="form-group">
+          <label>Dismissal Type</label>
+          <select id="wicketTypeSelect" class="form-control">
+            <option value="bowled">Bowled</option>
+            <option value="caught">Caught</option>
+            <option value="lbw">LBW (Leg Before Wicket)</option>
+            <option value="runOut">Run Out</option>
+            <option value="stumped">Stumped</option>
+            <option value="hitWicket">Hit Wicket</option>
+            <option value="retiredHurt">Retired Hurt</option>
+          </select>
+        </div>
+
+        <!-- Out Batter selection (critical for Run Out) -->
+        <div class="form-group">
+          <label>Batsman Dismissed</label>
+          <div class="pill-selector" id="outBatterSelector">
+            <div class="pill-opt red active" id="optStrikerOut" data-striker="true">Striker</div>
+            <div class="pill-opt red" id="optNonStrikerOut" data-striker="false">Non-Striker</div>
+          </div>
+        </div>
+
+        <!-- Fielder selection (for Caught, Stumped, Run Out) -->
+        <div class="form-group" id="fielderGroup" style="display: none;">
+          <label for="selectFielder">Fielder Involved</label>
+          <select id="selectFielder" class="form-control"></select>
+        </div>
+
+        <!-- Run out extra options -->
+        <div id="runOutOptionsGroup" style="display: none;">
+          <div class="form-group">
+            <label for="runOutCompletedRuns">Runs Completed Before Run Out</label>
+            <input type="number" id="runOutCompletedRuns" class="form-control" value="0" min="0" max="4">
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
+              <input type="checkbox" id="runOutCrossedCheck">
+              Did batsmen cross each other before the run out?
+            </label>
+          </div>
+        </div>
+
+        <!-- Next Batter Selector -->
+        <div class="form-group" id="nextBatterGroup">
+          <label for="selectNextBatter">Next Batter Coming In</label>
+          <select id="selectNextBatter" class="form-control" required></select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #be123c, #f43f5e);">
+          Confirm Wicket
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. NEW BOWLER / OVER COMPLETE MODAL -->
+  <div class="modal-backdrop" id="bowlerModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">🎯 Select Bowler for Next Over</h3>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Over completed! Note: Under cricket laws, the same bowler cannot bowl consecutive overs.
+      </p>
+
+      <form id="bowlerForm">
+        <div class="form-group">
+          <label for="selectNewBowler">Choose Bowler</label>
+          <select id="selectNewBowler" class="form-control" required></select>
+        </div>
+        <button type="submit" class="btn-primary">Start New Over 🏏</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. DELIVERY ADJUSTMENT / COMBO MODAL -->
+  <div class="modal-backdrop" id="comboModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Delivery Combination</h3>
+        <button type="button" class="close-btn" id="btnCloseComboModal">&times;</button>
+      </div>
+
+      <form id="comboForm">
+        <div class="form-group">
+          <label>Delivery Extra Type</label>
+          <select id="comboExtraType" class="form-control">
+            <option value="none">None (Regular delivery)</option>
+            <option value="noBall">No-Ball (nb)</option>
+            <option value="wide">Wide (wd)</option>
+            <option value="bye">Bye (b)</option>
+            <option value="legBye">Leg-Bye (lb)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="comboRunsBat">Runs Scored off Bat</label>
+          <input type="number" id="comboRunsBat" class="form-control" min="0" max="6" value="0">
+        </div>
+
+        <div class="form-group">
+          <label for="comboExtraRuns">Additional Running Extras</label>
+          <input type="number" id="comboExtraRuns" class="form-control" min="0" max="5" value="0">
+        </div>
+
+        <button type="submit" class="btn-primary">Record Delivery</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. MATCH RESULT & CELEBRATION MODAL (SIDE BY SIDE SCORECARDS) -->
+  <div class="modal-backdrop" id="matchResultModal">
+    <div class="modal-dialog modal-dialog-wide">
+      <div class="match-result-banner">
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="close-btn" id="btnCloseResultModal" title="Close Result Modal" aria-label="Close">&times;</button>
+        </div>
+        <div class="trophy-icon">🏆</div>
+        <h2 class="result-headline" id="resultHeadline">Match Concluded!</h2>
+        <p class="result-subtext" id="resultSubtext">Team won the match</p>
+
+        <div class="result-summary-pill-box">
+          <div id="resultScoreSummary"></div>
+        </div>
+
+        <!-- SIDE BY SIDE SCORECARDS OF BOTH TEAMS -->
+        <div class="match-end-scorecards-grid" id="matchEndScorecardsContainer">
+          <!-- Populated dynamically with Team 1 and Team 2 scorecards side-by-side -->
+        </div>
+
+        <div class="result-actions-row">
+          <button type="button" class="btn-primary" id="btnResultExport">
+            💾 Export Match JSON
+          </button>
+          <button type="button" class="btn-secondary" id="btnResultViewScorecard">
+            📊 View Full Tab Scorecard
+          </button>
+          <button type="button" class="btn-secondary btn-danger-outline" id="btnResultNewMatch">
+            🔄 Start New Match
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. SAVED MATCH HISTORY DRAWER / MODAL -->
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">📋 Saved Matches</h3>
+        <button type="button" class="close-btn" id="btnCloseHistoryModal">&times;</button>
+      </div>
+
+      <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto;">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+  </div>
+
+  <!-- APP FOOTER -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-credit">
+        <span class="footer-badge">🏏 KASHMIRI XI</span>
+        <span class="footer-text">APP DEVELOPED BY ABUBAKAR DAR</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
