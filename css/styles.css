@@ -275,24 +275,11 @@ body {
   gap: 20px;
 }
 
-@media (max-width: 640px) {
-  .banner-main-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-}
-
 .batting-team-title {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
-}
-
-@media (max-width: 640px) {
-  .batting-team-title {
-    justify-content: center;
-  }
 }
 
 .team-flag-pill {
@@ -326,12 +313,6 @@ body {
   flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-  .score-display-huge {
-    justify-content: center;
-  }
-}
-
 .primary-score {
   font-size: 3.5rem;
   font-weight: 900;
@@ -363,20 +344,9 @@ body {
   flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-  .rate-metrics {
-    justify-content: center;
-  }
-}
-
 .rate-box {
   background: #eff6ff;
   border: 1.5px solid var(--border-blue);
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  text-align: center;
-  min-width: 105px;
-}
   padding: 10px 16px;
   border-radius: var(--radius-md);
   text-align: center;
@@ -807,12 +777,6 @@ body {
   margin-bottom: 2px;
 }
 
-@media (max-width: 640px) {
-  .match-flow-controls {
-    grid-template-columns: 1fr;
-  }
-}
-
 .match-flow-btn {
   display: flex;
   align-items: center;
@@ -1061,12 +1025,6 @@ body {
   gap: 10px;
 }
 
-@media (max-width: 600px) {
-  .runs-pad {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 .score-btn {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-glass);
@@ -1132,12 +1090,6 @@ body {
   gap: 8px;
 }
 
-@media (max-width: 600px) {
-  .extras-pad {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 .extra-btn {
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid var(--border-glass);
@@ -1172,12 +1124,6 @@ body {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 10px;
-}
-
-@media (max-width: 600px) {
-  .actions-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 .action-btn {
@@ -1756,3 +1702,545 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* ===================================================================
+   IPHONE 14 & MOBILE APP-LIKE ZERO-SCROLL RESPONSIVE LAYOUT
+   Optimized specifically for 390px x 844px and modern iOS/PWA screens
+   =================================================================== */
+
+@media (max-width: 640px), (max-height: 860px) and (max-width: 768px) {
+  :root {
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .container {
+    padding: 6px 8px;
+    max-width: 100%;
+  }
+
+  /* 1. Header Bar */
+  .app-header {
+    padding: 6px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-content {
+    gap: 6px;
+  }
+
+  .logo-area {
+    gap: 6px;
+  }
+
+  .logo-badge {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    border-radius: 6px;
+  }
+
+  .logo-text h1 {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .logo-text span {
+    display: none; /* Hide subtitle to preserve space */
+  }
+
+  .offline-pill {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+  }
+
+  #offlineStatusText {
+    display: none; /* Show only status dot on small screens */
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  /* 2. Hero Scorecard Banner */
+  .score-banner-card {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: var(--radius-md);
+  }
+
+  .banner-top-meta {
+    margin-bottom: 4px;
+    gap: 4px;
+  }
+
+  .match-format-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .innings-indicator {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .toss-info-text {
+    font-size: 0.7rem;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .flow-pill-btn {
+    padding: 2px 7px;
+    font-size: 0.68rem;
+  }
+
+  #btnDeclare1stInnings {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  /* Side-by-side Score & CRR/RRR in 1 clean horizontal row */
+  .banner-main-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .batting-team-title {
+    margin-bottom: 2px;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .team-flag-pill {
+    width: 8px;
+    height: 18px;
+    border-radius: 2px;
+  }
+
+  .team-name-big {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .score-display-huge {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+
+  .primary-score {
+    font-size: 2.1rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .overs-conceded {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .overs-conceded .max-ov {
+    font-size: 0.8rem;
+  }
+
+  .rate-metrics {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+
+  .rate-box {
+    padding: 3px 6px;
+    min-width: 54px;
+    border-radius: var(--radius-sm);
+  }
+
+  .rate-box .label {
+    font-size: 0.58rem;
+    margin-bottom: 0px;
+  }
+
+  .rate-box .val {
+    font-size: 0.96rem;
+  }
+
+  /* 2nd Innings Target / Chase Strip */
+  .target-banner {
+    margin-top: 6px;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .target-info-row {
+    font-size: 0.74rem;
+    margin-bottom: 3px;
+    gap: 4px;
+  }
+
+  .target-pill-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  #displayChaseMath {
+    font-size: 0.76rem;
+  }
+
+  .target-progress-bar {
+    height: 5px;
+  }
+
+  /* Free Hit Banner */
+  .free-hit-strip {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    margin-top: 6px;
+  }
+
+  /* 3. Recent Deliveries Card */
+  .recent-deliveries-card {
+    padding: 4px 8px;
+    margin-bottom: 6px;
+    border-radius: var(--radius-md);
+    gap: 6px;
+  }
+
+  .recent-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .recent-balls-tray {
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0;
+  }
+
+  .ball-badge {
+    width: 25px;
+    height: 25px;
+    font-size: 0.68rem;
+    flex-shrink: 0;
+  }
+
+  /* 4. On-Field Players (Batters & Bowler) */
+  .onfield-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .section-card {
+    padding: 6px 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .card-title-bar {
+    margin-bottom: 4px;
+  }
+
+  .card-title {
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
+  .partnership-pill {
+    font-size: 0.68rem;
+    padding: 2px 5px;
+  }
+
+  .swap-strike-btn {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .data-table th {
+    padding: 3px 4px;
+    font-size: 0.64rem;
+  }
+
+  .data-table td {
+    padding: 4px 4px;
+    font-size: 0.8rem;
+  }
+
+  .batter-name-cell {
+    gap: 4px;
+    max-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .striker-star {
+    font-size: 0.9rem;
+  }
+
+  .bowler-active-box {
+    padding: 4px 6px;
+    margin-top: 2px;
+  }
+
+  .bowler-header {
+    margin-bottom: 3px;
+  }
+
+  .bowler-name {
+    font-size: 0.88rem;
+  }
+
+  .bowler-limit-badge {
+    font-size: 0.64rem;
+    padding: 1px 4px;
+  }
+
+  .change-bowler-btn {
+    padding: 2px 6px;
+    font-size: 0.66rem;
+  }
+
+  .bowler-stats-row {
+    gap: 3px;
+  }
+
+  .bowler-stat-item .stat-lbl {
+    font-size: 0.58rem;
+  }
+
+  .bowler-stat-item .stat-val {
+    font-size: 0.92rem;
+  }
+
+  /* 5. Live Scoring Console Pad */
+  .scoring-console-card {
+    padding: 7px 8px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .scoring-controls-grid {
+    gap: 5px;
+  }
+
+  /* Match Flow Controls (Next Inning & Match End) */
+  .match-flow-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5px;
+    margin-bottom: 0px;
+  }
+
+  .match-flow-btn {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    min-height: 38px;
+  }
+
+  .flow-btn-left {
+    gap: 6px;
+  }
+
+  .flow-icon-bubble {
+    width: 24px;
+    height: 24px;
+    font-size: 0.88rem;
+    border-radius: 6px;
+  }
+
+  .flow-btn-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  /* Hide verbose multi-line description on mobile to save vertical space! */
+  .flow-btn-sub {
+    display: none !important;
+  }
+
+  .flow-btn-badge {
+    font-size: 0.62rem;
+    padding: 2px 5px;
+  }
+
+  .flow-alert-banner {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Runs Pad: ALL 6 BUTTONS IN ONE ROW ON IPHONE 14 */
+  .runs-pad {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .score-btn {
+    padding: 6px 2px;
+    font-size: 1.25rem;
+    min-height: 44px;
+    border-radius: var(--radius-sm);
+    gap: 0;
+  }
+
+  .score-btn .sub-lbl {
+    font-size: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Extras Pad: ALL 5 BUTTONS IN ONE ROW ON IPHONE 14 */
+  .extras-pad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .extra-btn {
+    padding: 5px 2px;
+    font-size: 0.72rem;
+    min-height: 36px;
+    border-radius: var(--radius-sm);
+    gap: 0px;
+  }
+
+  .extra-btn .ext-sub {
+    font-size: 0.52rem;
+  }
+
+  /* Actions Row: 3 BUTTONS IN ONE ROW ON IPHONE 14 */
+  .actions-row {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr !important;
+    gap: 5px !important;
+  }
+
+  .action-btn {
+    padding: 8px 4px;
+    font-size: 0.76rem;
+    min-height: 38px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Touch optimizations */
+  button, .score-btn, .extra-btn, .action-btn, .match-flow-btn, .preset-chip, .tab-btn {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 6. Tabs Navigation below Console */
+  .tabs-navigation {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .tab-btn {
+    font-size: 0.72rem;
+    padding: 5px 8px;
+  }
+
+  /* 7. Setup Screen */
+  .setup-screen {
+    padding: 8px 4px;
+  }
+
+  .setup-card {
+    padding: 14px 10px;
+  }
+
+  .form-group {
+    margin-bottom: 10px;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #teamAPlayers, #teamBPlayers {
+    rows: 3;
+    max-height: 90px;
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+
+  .preset-chip {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .pill-opt {
+    font-size: 0.72rem;
+    padding: 6px 6px;
+  }
+
+  /* 8. App Footer */
+  .app-footer {
+    margin-top: 18px;
+    padding: 12px 8px;
+  }
+
+  .footer-credit {
+    padding: 6px 14px;
+    gap: 8px;
+  }
+
+  .footer-badge {
+    font-size: 0.74rem;
+    padding: 2px 8px;
+  }
+
+  .footer-text {
+    font-size: 0.76rem;
+  }
+
+  /* 9. Modals on iPhone 14 */
+  .modal-dialog {
+    padding: 14px 12px;
+    max-height: 92vh;
+    border-radius: var(--radius-md);
+  }
+
+  .modal-dialog-wide {
+    padding: 14px 10px;
+    width: 96vw;
+  }
+
+  .modal-header {
+    margin-bottom: 12px;
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+  }
+}
+
