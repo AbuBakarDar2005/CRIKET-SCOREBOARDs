@@ -807,6 +807,139 @@ class CricketEngine {
     });
   }
 
+  // Add incoming player to batting team squad on the fly
+  addPlayerToBattingTeam(name) {
+    this.saveSnapshot();
+    const innings = this.getCurrentInnings();
+    if (!innings) return null;
+    const battingTeam = this.getBattingTeam();
+    const newSquadNumber = battingTeam.players.length + 1;
+    const trimmed = (name || '').trim() || `Player ${newSquadNumber}`;
+    const prefix = battingTeam.shortName || 'BAT';
+    const newPlayer = {
+      id: `p_${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      name: trimmed,
+      squadNumber: newSquadNumber,
+      displayName: trimmed,
+      selectorLabel: `#${newSquadNumber}. ${trimmed}`,
+      isDuplicateName: false
+    };
+    battingTeam.players.push(newPlayer);
+    return newPlayer;
+  }
+
+  // Edit player name across state (incoming or active)
+  editPlayerName(playerId, newName) {
+    this.saveSnapshot();
+    const trimmed = (newName || '').trim();
+    if (!trimmed) return null;
+
+    let targetPlayer = null;
+    for (const teamKey of ['teamA', 'teamB']) {
+      const team = this.state[teamKey];
+      if (team && Array.isArray(team.players)) {
+        const found = team.players.find(p => p.id === playerId);
+        if (found) {
+          found.name = trimmed;
+          found.displayName = trimmed;
+          found.selectorLabel = `#${found.squadNumber}. ${trimmed}`;
+          targetPlayer = found;
+          break;
+        }
+      }
+    }
+
+    if (!targetPlayer) return null;
+
+    // Update any stats entries in active and past innings
+    for (const inn of this.state.innings) {
+      if (inn.batters && inn.batters[playerId]) {
+        inn.batters[playerId].name = targetPlayer.displayName || targetPlayer.name;
+        inn.batters[playerId].rawName = targetPlayer.name;
+      }
+      if (inn.bowlers && inn.bowlers[playerId]) {
+        inn.bowlers[playerId].name = targetPlayer.displayName || targetPlayer.name;
+        inn.bowlers[playerId].rawName = targetPlayer.name;
+      }
+      if (Array.isArray(inn.fallOfWickets)) {
+        inn.fallOfWickets.forEach(fow => {
+          if (fow.batterId === playerId) {
+            fow.batterName = targetPlayer.name;
+          }
+        });
+      }
+      if (Array.isArray(inn.deliveries)) {
+        inn.deliveries.forEach(del => {
+          if (del.strikerId === playerId) del.strikerName = targetPlayer.name;
+          if (del.bowlerId === playerId) del.bowlerName = targetPlayer.name;
+        });
+      }
+    }
+
+    return targetPlayer;
+  }
+
+  // Remove incoming player from batting squad (if they haven't batted yet)
+  removePlayerFromBattingTeam(playerId) {
+    const innings = this.getCurrentInnings();
+    if (!innings) return { success: false, reason: 'No active innings.' };
+    const battingTeam = this.getBattingTeam();
+
+    // Prevent removing a batter currently at the crease
+    if (innings.currentStrikerId === playerId || innings.currentNonStrikerId === playerId) {
+      return { success: false, reason: 'Cannot remove a batsman currently at the crease.' };
+    }
+
+    // Prevent removing someone who already batted
+    const batterStat = innings.batters[playerId];
+    if (batterStat && (batterStat.isOut || batterStat.balls > 0 || batterStat.runs > 0)) {
+      return { success: false, reason: 'Cannot remove a player who has already batted in this match.' };
+    }
+
+    // Clean up empty/unused record
+    if (innings.batters && innings.batters[playerId]) {
+      delete innings.batters[playerId];
+    }
+
+    this.saveSnapshot();
+    battingTeam.players = battingTeam.players.filter(p => p.id !== playerId);
+    return { success: true };
+  }
+
+  // Change or substitute an active batter with another player
+  changeActiveBatter(oldBatterId, newBatterId) {
+    this.saveSnapshot();
+    const innings = this.getCurrentInnings();
+    if (!innings) return false;
+
+    const isStriker = innings.currentStrikerId === oldBatterId;
+    const isNonStriker = innings.currentNonStrikerId === oldBatterId;
+    if (!isStriker && !isNonStriker) return false;
+
+    // Create stat record for new batter
+    this.getOrCreateBatter(newBatterId);
+
+    // If old batter never faced a ball and scored 0, release their batter record
+    const oldStat = innings.batters[oldBatterId];
+    if (oldStat && oldStat.balls === 0 && oldStat.runs === 0 && !oldStat.isOut) {
+      delete innings.batters[oldBatterId];
+    }
+
+    if (isStriker) {
+      innings.currentStrikerId = newBatterId;
+    } else {
+      innings.currentNonStrikerId = newBatterId;
+    }
+
+    // Refresh partnership
+    if (innings.currentPartnership) {
+      innings.currentPartnership.batter1Id = innings.currentStrikerId;
+      innings.currentPartnership.batter2Id = innings.currentNonStrikerId;
+    }
+
+    return true;
+  }
+
   // Helper formatting: legal balls to cricket overs e.g. 19 -> 3.1
   formatOvers(balls) {
     const completedOvers = Math.floor(balls / 6);

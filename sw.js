@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kashmiri-xi-v2';
+const CACHE_NAME = 'kashmiri-xi-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

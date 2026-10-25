@@ -16,6 +16,11 @@ A responsive, intuitive, and modern **Cricket Scoreboard Web Application** desig
   - **Alpha Suffix:** E.g. `Rahul (A)`, `Rahul (B)`.
   - **Keep Exact Name:** Displays identical names while ensuring unambiguous dropdown selections (`#1. Rahul`, `#2. Rahul`).
 - **Quick Match Presets:** Instant 1-click presets for *India vs Australia (T20)*, *England vs South Africa (ODI)*, *Club Blitz (10 Overs)*, and *Same Names Demo (Rahul vs John)*.
+- **Incoming Player Management (Change, Add, Remove, Edit):** Full flexibility during live play:
+  - **Change:** Pick or swap any incoming or active on-field batsman.
+  - **Add:** Add a brand-new player to the team squad on the fly.
+  - **Remove:** Remove an unbatted player from the squad if absent/unable to play.
+  - **Edit Name:** Correct typos or update player names anytime, automatically updating scorecards, fall-of-wickets, and commentary.
 - **Toss System:** Select toss winner and decision (Bat or Bowl).
 - **Innings Tracking:** Full lifecycle support across 1st Innings, Innings Break, 2nd Innings Target Chase, and Match Conclusion.
 

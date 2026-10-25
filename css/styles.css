@@ -1466,6 +1466,72 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Micro Action Buttons (Add, Edit, Remove Incoming Player) */
+.btn-micro {
+  background: #eff6ff;
+  border: 1px solid var(--border-blue);
+  color: var(--border-blue-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  touch-action: manipulation;
+  line-height: 1.2;
+}
+
+.btn-micro:hover {
+  background: var(--border-blue);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-micro:active {
+  transform: scale(0.96);
+}
+
+.btn-micro-danger {
+  border-color: #fca5a5;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.btn-micro-danger:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-micro-success {
+  border-color: #a7f3d0;
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.btn-micro-success:hover {
+  background: #059669;
+  color: #ffffff;
+}
+
+.table-action-icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+  color: var(--border-blue-dark);
+  line-height: 1;
+}
+
+.table-action-icon-btn:hover {
+  background: #dbeafe;
+}
+
 /* Setup View Styling */
 .setup-screen {
   max-width: 760px;

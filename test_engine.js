@@ -314,4 +314,64 @@ console.assert(flowEngine.state.isCompleted === true, 'Match marked completed up
 console.assert(flowEngine.areBothInningsEnded() === true, 'Both innings have now ended');
 console.assert(flowEngine.canEndMatch().allowed === true, 'MATCH END BUTTON IS NOW UNLOCKED after both innings ended!');
 
-console.log("ALL AUTOMATED TESTS PASSED FLAWLESSLY! Next Inning & Match End verification complete!");
+// ===================================================================
+// TEST SUITE 5: INCOMING PLAYER MANAGEMENT (ADD, EDIT, REMOVE, CHANGE)
+// ===================================================================
+console.log("Testing Incoming Player Management (Add, Edit, Remove, Change)...");
+
+const playerMgmtEngine = new CricketEngine();
+playerMgmtEngine.initMatch({
+  format: 't20',
+  teamA: { id: 'teamA', name: 'Kashmiri XI', players: ['Player1', 'Player2', 'Player3'] },
+  teamB: { id: 'teamB', name: 'Opponent XI', players: ['B1', 'B2', 'B3'] },
+  tossWinner: 'teamA',
+  tossDecision: 'bat'
+});
+
+const kashmiriPlayers = playerMgmtEngine.state.teamA.players;
+playerMgmtEngine.setOpeners(kashmiriPlayers[0].id, kashmiriPlayers[1].id, playerMgmtEngine.state.teamB.players[0].id);
+
+// 1. Check available batters initially
+let avail = playerMgmtEngine.getAvailableBatters();
+console.assert(avail.length === 1 && avail[0].id === kashmiriPlayers[2].id, 'Initially Player3 is available');
+
+// 2. ADD new incoming player on the fly
+const newPlayer = playerMgmtEngine.addPlayerToBattingTeam('Abubakar Dar');
+console.assert(newPlayer !== null, 'Player should be added');
+console.assert(newPlayer.name === 'Abubakar Dar', 'Player name is Abubakar Dar');
+console.assert(playerMgmtEngine.state.teamA.players.length === 4, 'Squad now has 4 players');
+
+avail = playerMgmtEngine.getAvailableBatters();
+console.assert(avail.some(p => p.id === newPlayer.id), 'Newly added player is in available incoming batters list');
+
+// 3. EDIT incoming player's name
+const edited = playerMgmtEngine.editPlayerName(newPlayer.id, 'Abubakar Dar (Captain)');
+console.assert(edited.name === 'Abubakar Dar (Captain)', 'Player name updated to Abubakar Dar (Captain)');
+console.assert(edited.displayName === 'Abubakar Dar (Captain)', 'Display name updated');
+const foundInTeam = playerMgmtEngine.state.teamA.players.find(p => p.id === newPlayer.id);
+console.assert(foundInTeam.name === 'Abubakar Dar (Captain)', 'Squad roster has updated name');
+
+// 4. REMOVE an incoming player from squad (who hasn't batted yet)
+const playerToRemove = playerMgmtEngine.addPlayerToBattingTeam('Temporary Player');
+console.assert(playerMgmtEngine.state.teamA.players.length === 5, 'Squad has 5 players');
+const removeRes = playerMgmtEngine.removePlayerFromBattingTeam(playerToRemove.id);
+console.assert(removeRes.success === true, 'Removal should succeed for unbatted player');
+console.assert(playerMgmtEngine.state.teamA.players.length === 4, 'Squad back to 4 players');
+console.assert(!playerMgmtEngine.state.teamA.players.some(p => p.id === playerToRemove.id), 'Player removed from squad');
+
+// Cannot remove an active on-field batter
+const cannotRemoveStriker = playerMgmtEngine.removePlayerFromBattingTeam(kashmiriPlayers[0].id);
+console.assert(cannotRemoveStriker.success === false, 'Cannot remove batter currently at crease');
+
+// 5. CHANGE incoming / active batter
+// Replace striker kashmiriPlayers[0] (0 balls, 0 runs) with Abubakar Dar
+const changeSuccess = playerMgmtEngine.changeActiveBatter(kashmiriPlayers[0].id, newPlayer.id);
+console.assert(changeSuccess === true, 'Change active batter succeeded');
+console.assert(playerMgmtEngine.getCurrentInnings().currentStrikerId === newPlayer.id, 'Abubakar Dar is now the striker');
+
+// The replaced player (Player1) had 0 balls and 0 runs, so they should be back in available bench!
+avail = playerMgmtEngine.getAvailableBatters();
+console.assert(avail.some(p => p.id === kashmiriPlayers[0].id), 'Player1 is returned to available bench after replacement');
+
+console.log("ALL AUTOMATED TESTS PASSED FLAWLESSLY! Next Inning, Match End & Incoming Player Management verification complete!");
+

@@ -134,6 +134,46 @@ document.addEventListener('DOMContentLoaded', () => {
   const runOutCrossedCheck = document.getElementById('runOutCrossedCheck');
   const selectNextBatter = document.getElementById('selectNextBatter');
   const nextBatterGroup = document.getElementById('nextBatterGroup');
+  const btnEditNextBatterWicket = document.getElementById('btnEditNextBatterWicket');
+  const btnAddNextBatterWicket = document.getElementById('btnAddNextBatterWicket');
+  const btnRemoveNextBatterWicket = document.getElementById('btnRemoveNextBatterWicket');
+
+  // Next Batter Dedicated Modal
+  const nextBatterModal = document.getElementById('nextBatterModal');
+  const btnCloseNextBatterModal = document.getElementById('btnCloseNextBatterModal');
+  const nextBatterForm = document.getElementById('nextBatterForm');
+  const selectStandaloneNextBatter = document.getElementById('selectStandaloneNextBatter');
+  const nextBatterEndSelector = document.getElementById('nextBatterEndSelector');
+  const btnEditNextBatterModal = document.getElementById('btnEditNextBatterModal');
+  const btnAddNextBatterModal = document.getElementById('btnAddNextBatterModal');
+  const btnRemoveNextBatterModal = document.getElementById('btnRemoveNextBatterModal');
+  let nextBatterPendingSlot = true; // true = striker, false = nonStriker
+
+  // Manage On-field Batters Modal
+  const btnManageBatters = document.getElementById('btnManageBatters');
+  const manageBattersModal = document.getElementById('manageBattersModal');
+  const btnCloseManageBattersModal = document.getElementById('btnCloseManageBattersModal');
+  const optManageStriker = document.getElementById('optManageStriker');
+  const optManageNonStriker = document.getElementById('optManageNonStriker');
+  const displayManageBatterName = document.getElementById('displayManageBatterName');
+  const displayManageBatterStats = document.getElementById('displayManageBatterStats');
+  const btnTriggerEditActiveBatter = document.getElementById('btnTriggerEditActiveBatter');
+  const btnTriggerReplaceActiveBatter = document.getElementById('btnTriggerReplaceActiveBatter');
+  const replaceBatterSection = document.getElementById('replaceBatterSection');
+  const selectReplacementBatter = document.getElementById('selectReplacementBatter');
+  const btnAddReplacementPlayer = document.getElementById('btnAddReplacementPlayer');
+  const btnConfirmReplaceBatter = document.getElementById('btnConfirmReplaceBatter');
+  let manageBatterSelectedSlot = 'striker'; // 'striker' or 'nonStriker'
+
+  // Player Prompt Modal
+  const playerPromptModal = document.getElementById('playerPromptModal');
+  const btnClosePlayerPromptModal = document.getElementById('btnClosePlayerPromptModal');
+  const playerPromptTitle = document.getElementById('playerPromptTitle');
+  const playerPromptLabel = document.getElementById('playerPromptLabel');
+  const playerPromptInput = document.getElementById('playerPromptInput');
+  const playerPromptHint = document.getElementById('playerPromptHint');
+  const playerPromptForm = document.getElementById('playerPromptForm');
+  const btnCancelPlayerPrompt = document.getElementById('btnCancelPlayerPrompt');
 
   const comboModal = document.getElementById('comboModal');
   const comboForm = document.getElementById('comboForm');
@@ -675,6 +715,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="batter-name-cell">
             <span class="striker-star">*</span>
             <strong>${striker.name}</strong>
+            <button type="button" class="table-action-icon-btn btn-table-edit-batter" data-id="${striker.id}" title="Edit Batter Name">✏️</button>
+            <button type="button" class="table-action-icon-btn btn-table-change-batter" data-slot="striker" title="Change / Replace Batter">⇄</button>
           </td>
           <td class="num"><strong>${striker.runs}</strong></td>
           <td class="num">${striker.balls}</td>
@@ -690,6 +732,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="batter-name-cell">
             <span style="visibility: hidden;" class="striker-star">*</span>
             <span>${nonStriker.name}</span>
+            <button type="button" class="table-action-icon-btn btn-table-edit-batter" data-id="${nonStriker.id}" title="Edit Batter Name">✏️</button>
+            <button type="button" class="table-action-icon-btn btn-table-change-batter" data-slot="nonStriker" title="Change / Replace Batter">⇄</button>
           </td>
           <td class="num"><strong>${nonStriker.runs}</strong></td>
           <td class="num">${nonStriker.balls}</td>
@@ -1071,7 +1115,56 @@ document.addEventListener('DOMContentLoaded', () => {
     runOutOptionsGroup.style.display = type === 'runOut' ? 'block' : 'none';
   }
 
-  function populateNextBatterSelect() {
+  // ===================================================================
+  // CUSTOM PLAYER PROMPT MODAL (REPLACES BROWSER PROMPT)
+  // ===================================================================
+  let playerPromptResolve = null;
+
+  function showPlayerPrompt(title, defaultValue = '', placeholder = '', hint = '') {
+    return new Promise((resolve) => {
+      playerPromptResolve = resolve;
+      playerPromptTitle.textContent = title;
+      playerPromptInput.value = defaultValue;
+      playerPromptInput.placeholder = placeholder || 'Enter player name';
+      playerPromptHint.textContent = hint || '';
+      playerPromptHint.style.color = 'var(--text-muted)';
+      playerPromptModal.classList.add('show');
+      setTimeout(() => {
+        playerPromptInput.focus();
+        playerPromptInput.select();
+      }, 50);
+    });
+  }
+
+  function closePlayerPrompt(val = null) {
+    playerPromptModal.classList.remove('show');
+    if (playerPromptResolve) {
+      playerPromptResolve(val);
+      playerPromptResolve = null;
+    }
+  }
+
+  if (btnClosePlayerPromptModal) btnClosePlayerPromptModal.addEventListener('click', () => closePlayerPrompt(null));
+  if (btnCancelPlayerPrompt) btnCancelPlayerPrompt.addEventListener('click', () => closePlayerPrompt(null));
+
+  if (playerPromptForm) {
+    playerPromptForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = playerPromptInput.value.trim();
+      if (!val) {
+        playerPromptHint.textContent = 'Please enter a valid player name.';
+        playerPromptHint.style.color = '#ef4444';
+        return;
+      }
+      closePlayerPrompt(val);
+    });
+  }
+
+  // ===================================================================
+  // INCOMING PLAYER MANAGEMENT (ADD, EDIT, REMOVE, CHANGE)
+  // ===================================================================
+
+  function populateNextBatterSelect(preferredId = null) {
     const available = engine.getAvailableBatters();
     if (available.length === 0) {
       nextBatterGroup.style.display = 'none';
@@ -1080,7 +1173,347 @@ document.addEventListener('DOMContentLoaded', () => {
       nextBatterGroup.style.display = 'block';
       selectNextBatter.required = true;
       selectNextBatter.innerHTML = available.map(p => `<option value="${p.id}">${p.selectorLabel || p.displayName || p.name}</option>`).join('');
+      if (preferredId) {
+        selectNextBatter.value = preferredId;
+      }
     }
+  }
+
+  function populateStandaloneNextBatterSelect(preferredId = null) {
+    if (!selectStandaloneNextBatter) return;
+    const available = engine.getAvailableBatters();
+    if (available.length === 0) {
+      selectStandaloneNextBatter.innerHTML = '<option value="">-- No available bench players --</option>';
+      selectStandaloneNextBatter.disabled = true;
+    } else {
+      selectStandaloneNextBatter.disabled = false;
+      selectStandaloneNextBatter.innerHTML = available.map(p => `<option value="${p.id}">${p.selectorLabel || p.displayName || p.name}</option>`).join('');
+      if (preferredId) {
+        selectStandaloneNextBatter.value = preferredId;
+      }
+    }
+  }
+
+  function populateReplacementBatterSelect(preferredId = null) {
+    if (!selectReplacementBatter) return;
+    const available = engine.getAvailableBatters();
+    if (available.length === 0) {
+      selectReplacementBatter.innerHTML = '<option value="">-- No available bench players --</option>';
+      selectReplacementBatter.disabled = true;
+      if (btnConfirmReplaceBatter) btnConfirmReplaceBatter.disabled = true;
+    } else {
+      selectReplacementBatter.disabled = false;
+      if (btnConfirmReplaceBatter) btnConfirmReplaceBatter.disabled = false;
+      selectReplacementBatter.innerHTML = available.map(p => `<option value="${p.id}">${p.selectorLabel || p.displayName || p.name}</option>`).join('');
+      if (preferredId) {
+        selectReplacementBatter.value = preferredId;
+      }
+    }
+  }
+
+  // Helper to re-populate all incoming player dropdowns
+  function refreshAllIncomingPlayerSelects(preferredId = null) {
+    populateNextBatterSelect(preferredId);
+    populateStandaloneNextBatterSelect(preferredId);
+    populateReplacementBatterSelect(preferredId);
+  }
+
+  // ADD INCOMING PLAYER
+  async function handleAddIncomingPlayer(targetSelect) {
+    const battingTeam = engine.getBattingTeam();
+    const teamName = battingTeam ? (battingTeam.shortName || battingTeam.name) : 'team';
+    const name = await showPlayerPrompt(
+      `➕ Add New Player to ${teamName}`,
+      '',
+      'e.g. Kamran or Abubakar Dar',
+      'The new player will be added to the squad and selected immediately.'
+    );
+
+    if (!name) return;
+
+    const newPlayer = engine.addPlayerToBattingTeam(name);
+    if (newPlayer) {
+      StorageManager.saveMatch(engine.state);
+      refreshAllIncomingPlayerSelects(newPlayer.id);
+      if (targetSelect) {
+        targetSelect.value = newPlayer.id;
+      }
+      renderScoreboard();
+      if (window.soundEffects) window.soundEffects.playTap();
+    }
+  }
+
+  // EDIT INCOMING PLAYER NAME
+  async function handleEditIncomingPlayer(targetSelect) {
+    const playerId = targetSelect ? targetSelect.value : null;
+    if (!playerId) {
+      alert('Please select a player to edit.');
+      return;
+    }
+    const player = engine.getPlayer(playerId);
+    if (!player) return;
+
+    const newName = await showPlayerPrompt(
+      `✏️ Edit Player Name`,
+      player.name,
+      'Enter new player name',
+      `Updating will correct this player's name across the scoreboard.`
+    );
+
+    if (!newName || newName === player.name) return;
+
+    const updated = engine.editPlayerName(playerId, newName);
+    if (updated) {
+      StorageManager.saveMatch(engine.state);
+      refreshAllIncomingPlayerSelects(playerId);
+      renderScoreboard();
+      if (window.soundEffects) window.soundEffects.playTap();
+    }
+  }
+
+  // REMOVE INCOMING PLAYER FROM SQUAD
+  function handleRemoveIncomingPlayer(targetSelect) {
+    const playerId = targetSelect ? targetSelect.value : null;
+    if (!playerId) {
+      alert('Please select a player to remove.');
+      return;
+    }
+    const player = engine.getPlayer(playerId);
+    if (!player) return;
+
+    const confirmRemove = confirm(`Are you sure you want to remove "${player.name}" from the squad? They will no longer be available to bat.`);
+    if (!confirmRemove) return;
+
+    const res = engine.removePlayerFromBattingTeam(playerId);
+    if (res.success) {
+      StorageManager.saveMatch(engine.state);
+      refreshAllIncomingPlayerSelects();
+      renderScoreboard();
+      if (window.soundEffects) window.soundEffects.playTap();
+    } else {
+      alert(res.reason || 'Could not remove player.');
+    }
+  }
+
+  // Wire up Wicket Modal Incoming Player Action Buttons
+  if (btnAddNextBatterWicket) {
+    btnAddNextBatterWicket.addEventListener('click', () => handleAddIncomingPlayer(selectNextBatter));
+  }
+  if (btnEditNextBatterWicket) {
+    btnEditNextBatterWicket.addEventListener('click', () => handleEditIncomingPlayer(selectNextBatter));
+  }
+  if (btnRemoveNextBatterWicket) {
+    btnRemoveNextBatterWicket.addEventListener('click', () => handleRemoveIncomingPlayer(selectNextBatter));
+  }
+
+  // Wire up Dedicated Next Batter Modal Buttons
+  if (btnAddNextBatterModal) {
+    btnAddNextBatterModal.addEventListener('click', () => handleAddIncomingPlayer(selectStandaloneNextBatter));
+  }
+  if (btnEditNextBatterModal) {
+    btnEditNextBatterModal.addEventListener('click', () => handleEditIncomingPlayer(selectStandaloneNextBatter));
+  }
+  if (btnRemoveNextBatterModal) {
+    btnRemoveNextBatterModal.addEventListener('click', () => handleRemoveIncomingPlayer(selectStandaloneNextBatter));
+  }
+  if (btnCloseNextBatterModal) {
+    btnCloseNextBatterModal.addEventListener('click', () => {
+      nextBatterModal.classList.remove('show');
+    });
+  }
+
+  // End Selector in Next Batter Modal
+  if (nextBatterEndSelector) {
+    nextBatterEndSelector.querySelectorAll('.pill-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        nextBatterEndSelector.querySelectorAll('.pill-opt').forEach(p => p.classList.remove('active'));
+        opt.classList.add('active');
+        nextBatterPendingSlot = (opt.dataset.end === 'striker');
+      });
+    });
+  }
+
+  // Show Next Batter Modal (Dedicated modal for incoming batsman)
+  function showNextBatterModal(isStrikerSlot) {
+    nextBatterPendingSlot = isStrikerSlot;
+    populateStandaloneNextBatterSelect();
+
+    if (nextBatterEndSelector) {
+      nextBatterEndSelector.querySelectorAll('.pill-opt').forEach(opt => {
+        const matches = (opt.dataset.end === 'striker') === isStrikerSlot;
+        opt.classList.toggle('active', matches);
+      });
+    }
+
+    nextBatterModal.classList.add('show');
+  }
+
+  // Submit Next Batter Form
+  if (nextBatterForm) {
+    nextBatterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nextBatterId = selectStandaloneNextBatter.value;
+      if (!nextBatterId) {
+        alert('Please choose or add an incoming batsman.');
+        return;
+      }
+
+      engine.setNewBatter(nextBatterId, nextBatterPendingSlot);
+      StorageManager.saveMatch(engine.state);
+      nextBatterModal.classList.remove('show');
+      renderScoreboard();
+      if (window.soundEffects) window.soundEffects.playTap();
+    });
+  }
+
+  // ===================================================================
+  // ON-FIELD BATTERS MANAGEMENT (CHANGE / EDIT / REPLACE AT CREASE)
+  // ===================================================================
+
+  function updateManageBattersDisplay() {
+    const innings = engine.getCurrentInnings();
+    if (!innings) return;
+    const isStriker = manageBatterSelectedSlot === 'striker';
+    const batterId = isStriker ? innings.currentStrikerId : innings.currentNonStrikerId;
+    const player = batterId ? engine.getPlayer(batterId) : null;
+    const batterStat = batterId ? engine.getOrCreateBatter(batterId) : null;
+
+    if (player && batterStat) {
+      displayManageBatterName.textContent = `${isStriker ? '* ' : ''}${player.displayName || player.name} (${isStriker ? "Striker" : "Non-Striker"})`;
+      displayManageBatterStats.textContent = `${batterStat.runs} runs from ${batterStat.balls} balls (${batterStat.fours}x4, ${batterStat.sixes}x6, SR: ${batterStat.strikeRate})`;
+    } else {
+      displayManageBatterName.textContent = 'None currently at crease';
+      displayManageBatterStats.textContent = '';
+    }
+
+    if (optManageStriker) optManageStriker.classList.toggle('active', isStriker);
+    if (optManageNonStriker) optManageNonStriker.classList.toggle('active', !isStriker);
+  }
+
+  function openManageBattersModal(slot = 'striker') {
+    manageBatterSelectedSlot = slot;
+    if (replaceBatterSection) replaceBatterSection.style.display = 'none';
+    updateManageBattersDisplay();
+    if (manageBattersModal) manageBattersModal.classList.add('show');
+  }
+
+  if (btnManageBatters) {
+    btnManageBatters.addEventListener('click', () => openManageBattersModal('striker'));
+  }
+  if (btnCloseManageBattersModal) {
+    btnCloseManageBattersModal.addEventListener('click', () => {
+      manageBattersModal.classList.remove('show');
+    });
+  }
+
+  if (optManageStriker) {
+    optManageStriker.addEventListener('click', () => {
+      manageBatterSelectedSlot = 'striker';
+      updateManageBattersDisplay();
+    });
+  }
+  if (optManageNonStriker) {
+    optManageNonStriker.addEventListener('click', () => {
+      manageBatterSelectedSlot = 'nonStriker';
+      updateManageBattersDisplay();
+    });
+  }
+
+  // Trigger Edit Name for active batter
+  if (btnTriggerEditActiveBatter) {
+    btnTriggerEditActiveBatter.addEventListener('click', async () => {
+      const innings = engine.getCurrentInnings();
+      if (!innings) return;
+      const isStriker = manageBatterSelectedSlot === 'striker';
+      const batterId = isStriker ? innings.currentStrikerId : innings.currentNonStrikerId;
+      if (!batterId) return;
+      const player = engine.getPlayer(batterId);
+      if (!player) return;
+
+      const newName = await showPlayerPrompt(
+        `✏️ Edit Batter Name`,
+        player.name,
+        'Enter new player name',
+        'This will update the player name on the live scoreboard and scorecard.'
+      );
+
+      if (!newName || newName === player.name) return;
+
+      engine.editPlayerName(batterId, newName);
+      StorageManager.saveMatch(engine.state);
+      updateManageBattersDisplay();
+      renderScoreboard();
+    });
+  }
+
+  // Trigger Replace Active Batter
+  if (btnTriggerReplaceActiveBatter) {
+    btnTriggerReplaceActiveBatter.addEventListener('click', () => {
+      if (replaceBatterSection.style.display === 'none') {
+        replaceBatterSection.style.display = 'block';
+        populateReplacementBatterSelect();
+      } else {
+        replaceBatterSection.style.display = 'none';
+      }
+    });
+  }
+
+  // Add new player from replacement section
+  if (btnAddReplacementPlayer) {
+    btnAddReplacementPlayer.addEventListener('click', () => handleAddIncomingPlayer(selectReplacementBatter));
+  }
+
+  // Confirm replacement
+  if (btnConfirmReplaceBatter) {
+    btnConfirmReplaceBatter.addEventListener('click', () => {
+      const innings = engine.getCurrentInnings();
+      if (!innings) return;
+      const isStriker = manageBatterSelectedSlot === 'striker';
+      const oldBatterId = isStriker ? innings.currentStrikerId : innings.currentNonStrikerId;
+      const newBatterId = selectReplacementBatter.value;
+
+      if (!newBatterId) {
+        alert('Please select a replacement player.');
+        return;
+      }
+
+      const success = engine.changeActiveBatter(oldBatterId, newBatterId);
+      if (success) {
+        StorageManager.saveMatch(engine.state);
+        manageBattersModal.classList.remove('show');
+        renderScoreboard();
+        if (window.soundEffects) window.soundEffects.playTap();
+      }
+    });
+  }
+
+  // Table inline delegation for edit and change icons on battersTableBody
+  if (battersTableBody) {
+    battersTableBody.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('.btn-table-edit-batter');
+      if (editBtn) {
+        const playerId = editBtn.dataset.id;
+        const player = engine.getPlayer(playerId);
+        if (!player) return;
+        const newName = await showPlayerPrompt(
+          `✏️ Edit Batter Name`,
+          player.name,
+          'Enter player name'
+        );
+        if (newName && newName !== player.name) {
+          engine.editPlayerName(playerId, newName);
+          StorageManager.saveMatch(engine.state);
+          renderScoreboard();
+        }
+        return;
+      }
+
+      const changeBtn = e.target.closest('.btn-table-change-batter');
+      if (changeBtn) {
+        const slot = changeBtn.dataset.slot || 'striker';
+        openManageBattersModal(slot);
+      }
+    });
   }
 
   // Wicket form submit
@@ -1122,25 +1555,13 @@ document.addEventListener('DOMContentLoaded', () => {
       showMatchResultModal();
     } else if (engine.state.currentInningsIndex === 0 && innings.isCompleted) {
       handleInningsBreak();
+    } else if (result.nextBatterPromptNeeded) {
+      showNextBatterModal(result.isStrikerOut);
     } else if (result.overCompleted) {
       if (window.soundEffects) window.soundEffects.playOverEnd();
       showBowlerModal();
     }
   });
-
-  // Prompt for new batter modal (if wicket fell without new batter pre-assigned)
-  function showNextBatterModal(isStrikerSlot) {
-    const available = engine.getAvailableBatters();
-    if (available.length === 0) return;
-
-    const batterId = prompt(`Select Next Batter:\n` + available.map((b, i) => `${i + 1}. ${b.selectorLabel || b.displayName || b.name}`).join('\n') + `\nEnter player number:`);
-    const chosenIndex = parseInt(batterId, 10) - 1;
-    if (available[chosenIndex]) {
-      engine.setNewBatter(available[chosenIndex].id, isStrikerSlot);
-      StorageManager.saveMatch(engine.state);
-      renderScoreboard();
-    }
-  }
 
   // Bowler Selection Modal
   function showBowlerModal() {

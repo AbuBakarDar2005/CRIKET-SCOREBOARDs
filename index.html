@@ -277,10 +277,13 @@
         <div class="section-card">
           <div class="card-title-bar">
             <span class="card-title">🏏 Batters in Middle</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <span class="partnership-pill" id="displayPartnership">P'ship: 0 (0)</span>
               <button class="swap-strike-btn" id="btnManualSwapStrike" title="Swap Striker & Non-Striker">
-                ⇄ Swap Strike
+                ⇄ Strike
+              </button>
+              <button class="swap-strike-btn" id="btnManageBatters" title="Change or Edit Incoming / Active Batter" style="color: var(--border-blue-dark); border-color: var(--border-blue);">
+                👥 Change / Edit
               </button>
             </div>
           </div>
@@ -636,15 +639,131 @@
           </div>
         </div>
 
-        <!-- Next Batter Selector -->
+        <!-- Next Batter Selector with Add, Edit, Remove Actions -->
         <div class="form-group" id="nextBatterGroup">
-          <label for="selectNextBatter">Next Batter Coming In</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+            <label for="selectNextBatter" style="margin-bottom: 0;">Next Batter Coming In</label>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn-micro" id="btnEditNextBatterWicket" title="Edit selected player's name">✏️ Edit</button>
+              <button type="button" class="btn-micro" id="btnAddNextBatterWicket" title="Add new player to squad">➕ Add</button>
+              <button type="button" class="btn-micro btn-micro-danger" id="btnRemoveNextBatterWicket" title="Remove player from squad">🗑️ Remove</button>
+            </div>
+          </div>
           <select id="selectNextBatter" class="form-control" required></select>
         </div>
 
         <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #be123c, #f43f5e);">
           Confirm Wicket
         </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2B. NEXT INCOMING BATTER MODAL (DEDICATED MODAL) -->
+  <div class="modal-backdrop" id="nextBatterModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">🏏 Next Incoming Batter</h3>
+        <button type="button" class="close-btn" id="btnCloseNextBatterModal">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Select the incoming batsman walking out to the crease. You can also change, add, remove, or edit names of squad players.
+      </p>
+
+      <form id="nextBatterForm">
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+            <label for="selectStandaloneNextBatter" style="margin-bottom: 0;">Choose Incoming Batter</label>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn-micro" id="btnEditNextBatterModal" title="Edit player name">✏️ Edit</button>
+              <button type="button" class="btn-micro" id="btnAddNextBatterModal" title="Add new player to squad">➕ Add</button>
+              <button type="button" class="btn-micro btn-micro-danger" id="btnRemoveNextBatterModal" title="Remove player from squad">🗑️ Remove</button>
+            </div>
+          </div>
+          <select id="selectStandaloneNextBatter" class="form-control" required></select>
+        </div>
+
+        <div class="form-group" id="nextBatterEndGroup">
+          <label>End Batter is Going To:</label>
+          <div class="pill-selector" id="nextBatterEndSelector">
+            <div class="pill-opt active" data-end="striker">Striker's End (*)</div>
+            <div class="pill-opt" data-end="nonStriker">Non-Striker's End</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          Confirm Batter to Crease 🚀
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2C. MANAGE / CHANGE ON-FIELD BATTERS MODAL -->
+  <div class="modal-backdrop" id="manageBattersModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">👥 Manage On-Field Batters</h3>
+        <button type="button" class="close-btn" id="btnCloseManageBattersModal">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Change, edit, or substitute batsmen currently at the crease.
+      </p>
+
+      <div class="form-group">
+        <label>Select Batter to Manage:</label>
+        <div class="pill-selector" id="manageBatterSlotSelector">
+          <div class="pill-opt active" data-slot="striker" id="optManageStriker">Striker (*)</div>
+          <div class="pill-opt" data-slot="nonStriker" id="optManageNonStriker">Non-Striker</div>
+        </div>
+      </div>
+
+      <div class="manage-batter-info-box" id="manageBatterInfoBox" style="background: #eff6ff; border: 1.5px solid var(--border-blue); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 0.95rem; font-weight: 800; color: #1e3a8a;" id="displayManageBatterName">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;" id="displayManageBatterStats">0 runs (0 balls)</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button type="button" class="btn-secondary" id="btnTriggerEditActiveBatter" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          ✏️ Edit Batter Name
+        </button>
+        <button type="button" class="btn-secondary" id="btnTriggerReplaceActiveBatter" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          ⇄ Replace / Change with Another Player
+        </button>
+      </div>
+
+      <!-- Replace Section (revealed when user clicks Replace) -->
+      <div id="replaceBatterSection" style="display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-blue);">
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+            <label for="selectReplacementBatter" style="margin-bottom: 0;">Replacement Player:</label>
+            <button type="button" class="btn-micro" id="btnAddReplacementPlayer">➕ Add New to Squad</button>
+          </div>
+          <select id="selectReplacementBatter" class="form-control"></select>
+        </div>
+        <button type="button" class="btn-primary" id="btnConfirmReplaceBatter">
+          Confirm Replacement ⇄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2D. CUSTOM PLAYER NAME PROMPT / EDIT MODAL -->
+  <div class="modal-backdrop" id="playerPromptModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="playerPromptTitle">Player Name</h3>
+        <button type="button" class="close-btn" id="btnClosePlayerPromptModal">&times;</button>
+      </div>
+      <form id="playerPromptForm">
+        <div class="form-group">
+          <label for="playerPromptInput" id="playerPromptLabel">Enter Name</label>
+          <input type="text" id="playerPromptInput" class="form-control" placeholder="e.g. Kamran or Abubakar Dar" required autofocus>
+          <div id="playerPromptHint" style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;"></div>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
+          <button type="button" class="btn-secondary" id="btnCancelPlayerPrompt" style="width: auto; margin-top: 0;">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnConfirmPlayerPrompt" style="width: auto; margin-top: 0; padding: 10px 18px;">Save</button>
+        </div>
       </form>
     </div>
   </div>
